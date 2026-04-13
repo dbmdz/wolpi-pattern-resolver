@@ -1,0 +1,21 @@
+logging:
+  level: debug
+
+extension-debug:
+    enabled: true
+    host: 0.0.0.0
+    port: 4711
+    suspend: false
+    waitAttached: false
+
+extensions:
+  - path: /app/extensions/resolving
+    live-reload: true
+    config:
+      resolvingPatterns:
+        # An image pattern resolving example:
+        - pattern: ^test-(\w+)$
+          substitutions:
+            - '/images/$1.tif'
+            - '/images/$1.jpg'
+            - '/images/$1.png'

@@ -1,0 +1,32 @@
+{
+  "name": "wolpi-resolving-extension",
+  "version": "0.0.1",
+  "description": "An extension for the Wolpi IIIF image server that resolves identifiers to image files",
+  "exports": "./src/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "format": "prettier --write ./{src,test}/**/*.ts",
+    "test": "vitest"
+  },
+  "keywords": [
+    "wolpi",
+    "resolving",
+    "extension"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@mdz/wolpi-types": "^0.1.0",
+    "prettier": "^3.8.1",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.8",
+    "vitest": "^4.1.4"
+  },
+  "files": [
+    "./src/index.js",
+    "README.md",
+    "LICENSE"
+  ]
+}
