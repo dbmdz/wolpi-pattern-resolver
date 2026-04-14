@@ -7,6 +7,8 @@ These are used for resolving identifiers to a path on the local file system or a
 You can specify multiple substitutions - the resolving extension will then verify if the corresponding resource actually exists and return
 the first matching substitution.
 
+The extension supports HTTP caching by returning an ETag value and last-modified timestamp for the resolved resources and matching them against the cache headers from the client request.
+
 ## Usage
 Create a directory called `images` in your working directory and save the image file `wolpi.png` to it.
 
@@ -106,6 +108,15 @@ docker run -p 8080:8080 \
 // TODO: Add link to Wolpi DAP documentation
 
 Attach to the debugging server as described here and make sure to set your breakpoints in the compiled javascript file (`src/index.js`).
+
+### Testing
+Run tests:
+```bash
+npm run test
+```
+
+The `wolpi` and `Java` globals as well as the modules `wolpi:fs` and `wolpi:fetch`, which are provided by Wolpi at runtime, are mocked in `./test/setup.ts`.
+
 
 ## License
 

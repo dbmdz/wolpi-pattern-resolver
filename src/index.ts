@@ -5,6 +5,11 @@ import {
   WolpiExtension,
 } from "@mdz/wolpi-types";
 import fetchSync from "wolpi:fetch";
+import {
+  getCacheInfo,
+  getCacheInfoFromHeaders,
+  notModified,
+} from "./caching.js";
 
 interface ResolvingPatternConfig {
   pattern: string;
@@ -44,7 +49,7 @@ const extension: WolpiExtension = {
   cleanup: () => {
     // extension does not store request-specific information -> no cleanup needed after each request, but method must be present
   },
-  resolve: (identifier) => {
+  resolve: (identifier, clientETag, clientLastModified) => {
     if (!PATTERNS) {
       return null;
     }
@@ -71,6 +76,9 @@ const extension: WolpiExtension = {
             continue;
           }
           wolpi.logger.debug(`Resolved ${identifier} to ${resolved}`);
+          if (notModified(image?.cacheInfo, clientETag, clientLastModified)) {
+            return { notModified: true };
+          }
           return image;
         } catch (e) {
           // resource doesn't exist, continue
@@ -90,12 +98,15 @@ function fetchRemote(url: string): HttpResolvedImage | null {
   if (!response.ok) {
     return null;
   }
-  return { url: url };
+  const cacheInfo = getCacheInfoFromHeaders(response.headers);
+  return { url: url, ...(cacheInfo && { cacheInfo: cacheInfo }) };
 }
 
 function fetchLocal(path: string): FilesystemResolvedImage | null {
-  if (lstatSync(path).isFile()) {
-    return { path: path };
+  const stats = lstatSync(path);
+  if (stats.isFile()) {
+    const cacheInfo = getCacheInfo(path, stats);
+    return { path: path, cacheInfo: cacheInfo };
   }
   return null;
 }

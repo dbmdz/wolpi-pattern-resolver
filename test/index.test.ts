@@ -1,54 +1,5 @@
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import extension from "../src/index";
-import { WolpiContext } from "@mdz/wolpi-types";
-
-// mock modules that will be provided by Wolpi at runtime
-vi.mock("wolpi:fetch", () => ({
-  default: vi.fn((url) => {
-    if (url === "https://some.domain.de/abc/123.jpg") {
-      return { ok: true };
-    }
-    return { ok: false };
-  }),
-}));
-
-vi.mock("wolpi:fs", () => ({
-  lstatSync: vi.fn((path) => {
-    if (path === "/images/abc_123.jpg") {
-      return {
-        isFile: vi.fn().mockReturnValue(true),
-      };
-    }
-    return {
-      isFile: vi.fn().mockReturnValue(false),
-    };
-  }),
-}));
-
-// mock Wolpi context with extension configuration that will be provided at runtime
-const WolpiMock = {
-  config: {
-    resolvingPatterns: [
-      {
-        pattern: "^test-(\\w+)-(\\d+)$",
-        substitutions: ["/images/$1_$2.tif", "/images/$1_$2.jpg"],
-      },
-      {
-        pattern: "^remote-(\\w+)-(\\d+)$",
-        substitutions: ["/images/$1.jpg", "https://some.domain.de/$1/$2.jpg"],
-      },
-    ],
-  },
-  logger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    getLogger: vi.fn(),
-  },
-};
-
-vi.stubGlobal("wolpi", WolpiMock);
 
 beforeAll(() => {
   if (extension.setup) {
@@ -61,6 +12,10 @@ describe("wolpi resolving extension", () => {
     expect(extension.resolve).toBeDefined();
     expect(extension.resolve!("test-abc-123")).toEqual({
       path: "/images/abc_123.jpg",
+      cacheInfo: {
+        eTag: "94c11ed3c3c73016adb92416352678e169cbe47bb48bc27e5e9d466115b06252",
+        lastModified: "2026-04-14T13:17:57.000Z",
+      },
     });
   });
 
@@ -78,6 +33,40 @@ describe("wolpi resolving extension", () => {
     expect(extension.resolve).toBeDefined();
     expect(extension.resolve!("remote-abc-123")).toEqual({
       url: "https://some.domain.de/abc/123.jpg",
+      cacheInfo: {
+        eTag: "94c11ed3c3c73016adb92416352678e169cbe47bb48bc27e5e9d466115b06252",
+        lastModified: "Fri, 10 Apr 2026 12:24:20 GMT",
+      },
+    });
+  });
+
+  it("returns not modified for identifier with matching eTag and last modified timestamp", () => {
+    expect(extension.resolve).toBeDefined();
+    expect(
+      extension.resolve!(
+        "remote-abc-123",
+        "94c11ed3c3c73016adb92416352678e169cbe47bb48bc27e5e9d466115b06252",
+        "Fri, 10 Apr 2026 12:24:20 GMT",
+      ),
+    ).toEqual({
+      notModified: true,
+    });
+  });
+
+  it("returns updated resource for identifier with outdated last modified timestamp", () => {
+    expect(extension.resolve).toBeDefined();
+    expect(
+      extension.resolve!(
+        "remote-abc-123",
+        "94c11ed3c3c73016adb92416352678e169cbe47bb48bc27e5e9d466115b06252",
+        "Fri, 09 Apr 2026 12:24:20 GMT",
+      ),
+    ).toEqual({
+      url: "https://some.domain.de/abc/123.jpg",
+      cacheInfo: {
+        eTag: "94c11ed3c3c73016adb92416352678e169cbe47bb48bc27e5e9d466115b06252",
+        lastModified: "Fri, 10 Apr 2026 12:24:20 GMT",
+      },
     });
   });
 });

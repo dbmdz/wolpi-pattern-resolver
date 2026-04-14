@@ -7,7 +7,6 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "clean": "rm -rf dist",
     "format": "prettier --write ./{src,test}/**/*.ts",
     "test": "vitest"
   },
@@ -26,6 +25,7 @@
   },
   "files": [
     "./src/index.js",
+    "./src/caching.js",
     "README.md",
     "LICENSE"
   ]
