@@ -23,40 +23,6 @@ const WolpiMock = {
   },
 };
 
-const MessageDigestMock = {
-  getInstance: vi.fn(() => {
-    return {
-      digest: vi.fn(() => [
-        -108, -63, 30, -45, -61, -57, 48, 22, -83, -71, 36, 22, 53, 38, 120,
-        -31, 105, -53, -28, 123, -76, -117, -62, 126, 94, -99, 70, 97, 21, -80,
-        98, 82,
-      ]),
-    };
-  }),
-};
-
-const ByteBufferMock = {
-  remaining: vi.fn().mockReturnValue(39),
-  get: vi.fn().mockReturnValue([]),
-};
-
-// mock Java API that will be provided by Wolpi at runtime
-const JavaMock = {
-  type: vi.fn((javaType) => {
-    if (javaType === "java.security.MessageDigest") {
-      return MessageDigestMock;
-    }
-    if (javaType === "java.nio.charset.StandardCharsets") {
-      return {
-        UTF_8: {
-          encode: vi.fn().mockReturnValue(ByteBufferMock),
-        },
-      };
-    }
-  }),
-};
-
-vi.stubGlobal("Java", JavaMock);
 vi.stubGlobal("wolpi", WolpiMock);
 
 // mock modules that will be provided by Wolpi at runtime
@@ -65,9 +31,20 @@ vi.mock("wolpi:fetch", () => ({
     if (url === "https://some.domain.de/abc/123.jpg") {
       return {
         ok: true,
+        status: 200,
         headers: {
           "last-modified": "Fri, 10 Apr 2026 12:24:20 GMT",
           etag: "94c11ed3c3c73016adb92416352678e169cbe47bb48bc27e5e9d466115b06252",
+        },
+      };
+    }
+    if (url === "https://some.domain.de/abc/456.jpg") {
+      return {
+        ok: true,
+        status: 304,
+        headers: {
+          "last-modified": "Fri, 08 Apr 2026 12:24:00 GMT",
+          etag: "94c11ed3c3c73016adb9241635a93457169cbe47bb48bc27e5e9d466115b06252",
         },
       };
     }
@@ -80,8 +57,6 @@ vi.mock("wolpi:fs", () => ({
     if (path === "/images/abc_123.jpg") {
       return {
         isFile: vi.fn().mockReturnValue(true),
-        mtimeMs: 1776172677316,
-        size: 1420168,
       };
     }
     return {

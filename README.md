@@ -7,7 +7,7 @@ These are used for resolving identifiers to a path on the local file system or a
 You can specify multiple substitutions - the resolving extension will then verify if the corresponding resource actually exists and return
 the first matching substitution.
 
-The extension supports HTTP caching by returning an ETag value and last-modified timestamp for the resolved resources and matching them against the cache headers from the client request.
+The extension supports HTTP caching by forwarding ETag and Last-Modified headers to and from remote endpoints.
 
 ## Usage
 Create a directory called `images` in your working directory and save the image file `wolpi.png` to it.
