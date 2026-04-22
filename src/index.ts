@@ -1,5 +1,6 @@
 import { lstatSync } from "wolpi:fs";
 import {
+  CacheInfo,
   FilesystemResolvedImage,
   HttpResolvedImage,
   WolpiExtension,
@@ -44,7 +45,7 @@ const extension: WolpiExtension = {
   cleanup: () => {
     // extension does not store request-specific information -> no cleanup needed after each request, but method must be present
   },
-  resolve: (identifier) => {
+  resolve: (identifier, clientETag, clientLastModified) => {
     if (!PATTERNS) {
       return null;
     }
@@ -63,7 +64,7 @@ const extension: WolpiExtension = {
             resolved.startsWith("http://") ||
             resolved.startsWith("https://")
           ) {
-            image = fetchRemote(resolved);
+            image = fetchRemote(resolved, clientETag, clientLastModified);
           } else {
             image = fetchLocal(resolved);
           }
@@ -82,22 +83,50 @@ const extension: WolpiExtension = {
   },
 };
 
-function fetchRemote(url: string): HttpResolvedImage | null {
+function fetchRemote(
+  url: string,
+  clientETag?: string | null,
+  clientLastModified?: string | null,
+): HttpResolvedImage | null {
   const response = fetchSync(url, {
     method: "HEAD",
-    headers: { Accept: "image/*" },
+    headers: {
+      Accept: "image/*",
+      ...(clientETag ? { "If-None-Match": clientETag } : {}),
+      ...(clientLastModified
+        ? { "If-Modified-Since": clientLastModified }
+        : {}),
+    },
   });
-  if (!response.ok) {
+
+  if (!response.ok && response.status !== 304) {
     return null;
   }
-  return { url: url };
+  const cacheInfo = getCacheInfoFromHeaders(response.headers);
+  return { url: url, ...(cacheInfo ? { cacheInfo: cacheInfo } : {}) };
 }
 
 function fetchLocal(path: string): FilesystemResolvedImage | null {
-  if (lstatSync(path).isFile()) {
+  const stats = lstatSync(path);
+  if (stats.isFile()) {
+    // cache info for FilesystemResolvedImages will be automatically provided by Wolpi
     return { path: path };
   }
   return null;
+}
+
+function getCacheInfoFromHeaders(
+  headers: Record<string, string>,
+): CacheInfo | null {
+  if (!headers["last-modified"] && !headers["etag"]) {
+    return null;
+  }
+  return {
+    ...(headers["etag"] ? { eTag: headers["etag"] } : {}),
+    ...(headers["last-modified"]
+      ? { lastModified: new Date(headers["last-modified"]) }
+      : {}),
+  };
 }
 
 export default extension;
