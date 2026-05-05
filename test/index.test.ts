@@ -39,7 +39,7 @@ describe("wolpi resolving extension", () => {
   it("handles 304 not modified from remote endpoint", () => {
     expect(extension.resolve).toBeDefined();
     expect(extension.resolve!("remote-abc-456")).toEqual({
-      url: "https://some.domain.de/abc/456.jpg",
+      notModified: true,
       cacheInfo: {
         eTag: "94c11ed3c3c73016adb9241635a93457169cbe47bb48bc27e5e9d466115b06252",
         lastModified: new Date("Fri, 08 Apr 2026 12:24:00 GMT"),

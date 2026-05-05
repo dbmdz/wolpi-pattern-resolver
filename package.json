@@ -1,7 +1,7 @@
 {
-  "name": "wolpi-resolving-extension",
-  "version": "0.0.1",
-  "description": "An extension for the Wolpi IIIF image server that resolves identifiers to image files",
+  "name": "@mdz/wolpi-pattern-resolver",
+  "version": "0.1.0",
+  "description": "An extension for the Wolpi IIIF image server that uses regular expressions to resolve identifiers to images.",
   "exports": "./src/index.js",
   "type": "module",
   "scripts": {
@@ -13,11 +13,12 @@
   "keywords": [
     "wolpi",
     "resolving",
-    "extension"
+    "extension",
+    "iiif"
   ],
   "license": "MIT",
   "devDependencies": {
-    "@mdz/wolpi-types": "^0.1.0",
+    "@mdz/wolpi-types": "../wolpi-types-js",
     "prettier": "^3.8.1",
     "typescript": "^6.0.2",
     "vite": "^8.0.8",
@@ -25,7 +26,6 @@
   },
   "files": [
     "./src/index.js",
-    "./src/caching.js",
     "README.md",
     "LICENSE"
   ]

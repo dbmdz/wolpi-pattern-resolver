@@ -3,6 +3,7 @@ import {
   CacheInfo,
   FilesystemResolvedImage,
   HttpResolvedImage,
+  SourceNotModified,
   WolpiExtension,
 } from "@mdz/wolpi-types";
 import fetchSync from "wolpi:fetch";
@@ -10,6 +11,10 @@ import fetchSync from "wolpi:fetch";
 interface ResolvingPatternConfig {
   pattern: string;
   substitutions: string[];
+}
+
+interface ExtensionConfig {
+  resolvingPatterns: ResolvingPatternConfig[];
 }
 
 interface CompiledResolvingPattern {
@@ -22,25 +27,24 @@ let PATTERNS: CompiledResolvingPattern[] | null;
 const extension: WolpiExtension = {
   info: () => ({
     apiVersion: 1,
-    name: "resolving",
+    name: "Pattern Resolver",
     description:
       "Resolves identifiers to a path on the local file system or a remote HTTP endpoint",
   }),
   setup: () => {
-    // initialize extension at startup: compile regex patterns once and reuse them for every request
-    PATTERNS = wolpi.config?.resolvingPatterns?.map(
-      ({ pattern, substitutions }: ResolvingPatternConfig) => ({
-        pattern: new RegExp(pattern),
-        substitutions: substitutions,
-      }),
-    );
+    // initialize extension at startup: compile regex patterns once and reuse
+    // them for every request
+    const patternSpec = wolpi.config?.resolvingPatterns as ResolvingPatternConfig[] | undefined;;
+    PATTERNS =
+      patternSpec?.map(
+        ({ pattern, substitutions }: ResolvingPatternConfig) => ({
+          pattern: new RegExp(pattern),
+          substitutions: substitutions,
+        }),
+      ) ?? null;
     if (!PATTERNS) {
       wolpi.logger.warn("No resolving patterns configured");
     }
-  },
-  destroy: () => {
-    // discard regex patterns when extension is shutdown
-    PATTERNS = null;
   },
   cleanup: () => {
     // extension does not store request-specific information -> no cleanup needed after each request, but method must be present
@@ -64,9 +68,9 @@ const extension: WolpiExtension = {
             resolved.startsWith("http://") ||
             resolved.startsWith("https://")
           ) {
-            image = fetchRemote(resolved, clientETag, clientLastModified);
+            image = checkRemote(resolved, clientETag, clientLastModified);
           } else {
-            image = fetchLocal(resolved);
+            image = checkLocal(resolved);
           }
           if (!image) {
             continue;
@@ -83,11 +87,11 @@ const extension: WolpiExtension = {
   },
 };
 
-function fetchRemote(
+function checkRemote(
   url: string,
   clientETag?: string | null,
   clientLastModified?: string | null,
-): HttpResolvedImage | null {
+): HttpResolvedImage | SourceNotModified | null {
   const response = fetchSync(url, {
     method: "HEAD",
     headers: {
@@ -103,10 +107,15 @@ function fetchRemote(
     return null;
   }
   const cacheInfo = getCacheInfoFromHeaders(response.headers);
-  return { url: url, ...(cacheInfo ? { cacheInfo: cacheInfo } : {}) };
+  const baseResp = cacheInfo ? { cacheInfo } : {};
+  if (response.status === 304) {
+    return { notModified: true, ...baseResp };
+  } else {
+    return { url, ...baseResp };
+  }
 }
 
-function fetchLocal(path: string): FilesystemResolvedImage | null {
+function checkLocal(path: string): FilesystemResolvedImage | null {
   const stats = lstatSync(path);
   if (stats.isFile()) {
     // cache info for FilesystemResolvedImages will be automatically provided by Wolpi
