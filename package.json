@@ -4,6 +4,13 @@
   "description": "An extension for the Wolpi IIIF image server that uses regular expressions to resolve identifiers to images.",
   "exports": "./src/index.js",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dbmdz/wolpi-pattern-resolver.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
