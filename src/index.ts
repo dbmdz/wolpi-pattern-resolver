@@ -34,7 +34,9 @@ const extension: WolpiExtension = {
   setup: () => {
     // initialize extension at startup: compile regex patterns once and reuse
     // them for every request
-    const patternSpec = wolpi.config?.resolvingPatterns as ResolvingPatternConfig[] | undefined;;
+    const patternSpec = wolpi.config?.resolvingPatterns as
+      | ResolvingPatternConfig[]
+      | undefined;
     PATTERNS =
       patternSpec?.map(
         ({ pattern, substitutions }: ResolvingPatternConfig) => ({
