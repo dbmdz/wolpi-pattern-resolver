@@ -5,7 +5,7 @@ import {
   HttpResolvedImage,
   SourceNotModified,
   WolpiExtension,
-} from "@mdz/wolpi-types";
+} from "wolpi-types";
 import fetchSync from "wolpi:fetch";
 
 interface ResolvingPatternConfig {
