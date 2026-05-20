@@ -22,7 +22,7 @@ Configure the resolving extension in your `wolpi.yml`:
 ```yaml
 extensions:
   - npm:
-      pkg: "@mdz/wolpi-pattern-resolver"
+      pkg: "wolpi-pattern-resolver"
       version: "0.1.0"
     config:
       resolvingPatterns:
