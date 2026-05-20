@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "types": [
-      "@mdz/wolpi-types"
+      "wolpi-types"
     ],
   },
   "include": ["./src/**/*"],
