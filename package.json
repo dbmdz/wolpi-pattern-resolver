@@ -1,5 +1,5 @@
 {
-  "name": "@mdz/wolpi-pattern-resolver",
+  "name": "wolpi-pattern-resolver",
   "version": "0.1.0",
   "description": "An extension for the Wolpi IIIF image server that uses regular expressions to resolve identifiers to images.",
   "exports": "./src/index.js",
