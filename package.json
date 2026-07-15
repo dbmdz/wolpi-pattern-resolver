@@ -1,6 +1,6 @@
 {
   "name": "wolpi-pattern-resolver",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An extension for the Wolpi IIIF image server that uses regular expressions to resolve identifiers to images.",
   "exports": "./src/index.js",
   "type": "module",
@@ -16,6 +16,7 @@
     "dev": "tsc --watch",
     "format": "prettier --write ./{src,test}/**/*.ts",
     "lint": "prettier --check ./{src,test}/**/*.ts",
+    "prepublishOnly": "npm run build",
     "test": "vitest"
   },
   "keywords": [
