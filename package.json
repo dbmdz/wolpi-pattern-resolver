@@ -16,6 +16,7 @@
     "dev": "tsc --watch",
     "format": "prettier --write ./{src,test}/**/*.ts",
     "lint": "prettier --check ./{src,test}/**/*.ts",
+    "prepublishOnly": "npm run build",
     "test": "vitest"
   },
   "keywords": [
